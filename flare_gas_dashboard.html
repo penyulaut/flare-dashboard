@@ -1,0 +1,1496 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flare Gas Intelligence Dashboard — Indonesia</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --bg: #f4f6fb;
+        --surface: #ffffff;
+        --surface2: #f1f5f9;
+        --border: #e2e8f0;
+        --border2: #cbd5e1;
+        --text: #0f172a;
+        --muted: #64748b;
+        --accent: #0f766e;
+        --accent2: #1d4ed8;
+        --warn: #d97706;
+        --danger: #dc2626;
+        --good: #16a34a;
+        --shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+        --shadow-soft: 0 8px 20px rgba(15, 23, 42, 0.06);
+        --font-head: "Space Grotesk", sans-serif;
+        --font-body: "IBM Plex Sans", sans-serif;
+        --font-mono: "JetBrains Mono", monospace;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 14px;
+        line-height: 1.6;
+        min-height: 100vh;
+      }
+
+      /* ── BACKGROUND ── */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background:
+          radial-gradient(
+            1200px 500px at 10% -10%,
+            rgba(15, 118, 110, 0.12),
+            transparent 60%
+          ),
+          radial-gradient(
+            900px 500px at 90% 0%,
+            rgba(29, 78, 216, 0.1),
+            transparent 55%
+          ),
+          linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.6),
+            rgba(244, 246, 251, 0)
+          );
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      body > * {
+        position: relative;
+        z-index: 1;
+      }
+
+      /* ── HEADER ── */
+      header {
+        border-bottom: 1px solid var(--border);
+        padding: 0 32px;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(10px);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .logo-icon {
+        width: 34px;
+        height: 34px;
+        background: linear-gradient(135deg, var(--accent), #0e7490);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        color: #ffffff;
+        box-shadow: 0 8px 16px rgba(15, 118, 110, 0.2);
+      }
+
+      .logo-text {
+        font-family: var(--font-head);
+        font-weight: 600;
+        font-size: 15px;
+        letter-spacing: -0.01em;
+      }
+
+      .logo-text span {
+        color: var(--accent);
+      }
+
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .live-badge {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--accent);
+        background: rgba(15, 118, 110, 0.08);
+        border: 1px solid rgba(15, 118, 110, 0.2);
+        padding: 6px 10px;
+        border-radius: 999px;
+      }
+
+      .live-dot {
+        width: 6px;
+        height: 6px;
+        background: var(--accent);
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.3;
+        }
+      }
+
+      .year-select {
+        background: var(--surface);
+        border: 1px solid var(--border2);
+        color: var(--text);
+        font-family: var(--font-mono);
+        font-size: 12px;
+        padding: 8px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        outline: none;
+        box-shadow: var(--shadow-soft);
+      }
+
+      .year-select:focus {
+        border-color: var(--accent);
+      }
+
+      /* ── MAIN LAYOUT ── */
+      main {
+        padding: 32px 32px 56px;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      /* ── PAGE TITLE ── */
+      .page-title {
+        margin-bottom: 28px;
+      }
+
+      .page-title h1 {
+        font-family: var(--font-head);
+        font-size: 30px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: var(--text);
+        line-height: 1.2;
+      }
+
+      .page-title h1 span {
+        color: var(--accent);
+      }
+
+      .page-title p {
+        color: var(--muted);
+        font-size: 12px;
+        margin-top: 8px;
+        font-family: var(--font-mono);
+      }
+
+      /* ── KPI GRID ── */
+      .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        margin-bottom: 24px;
+      }
+
+      .kpi-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 22px 24px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-soft);
+        transition:
+          border-color 0.2s,
+          transform 0.2s ease;
+      }
+
+      .kpi-card:hover {
+        border-color: var(--border2);
+        transform: translateY(-2px);
+      }
+
+      .kpi-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+      }
+
+      .kpi-card.green::before {
+        background: var(--good);
+      }
+      .kpi-card.blue::before {
+        background: var(--accent2);
+      }
+      .kpi-card.amber::before {
+        background: var(--warn);
+      }
+      .kpi-card.teal::before {
+        background: var(--accent);
+      }
+
+      .kpi-label {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 8px;
+      }
+
+      .kpi-value {
+        font-family: var(--font-head);
+        font-size: 30px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        line-height: 1;
+      }
+
+      .kpi-card.green .kpi-value {
+        color: var(--good);
+      }
+      .kpi-card.blue .kpi-value {
+        color: var(--accent2);
+      }
+      .kpi-card.amber .kpi-value {
+        color: var(--warn);
+      }
+      .kpi-card.teal .kpi-value {
+        color: var(--accent);
+      }
+
+      .kpi-sub {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 6px;
+        font-family: var(--font-mono);
+      }
+
+      .kpi-icon {
+        position: absolute;
+        top: 18px;
+        right: 18px;
+        font-size: 22px;
+        opacity: 0.18;
+      }
+
+      /* ── GRID LAYOUTS ── */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        margin-bottom: 14px;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 14px;
+        margin-bottom: 14px;
+      }
+      .grid-full {
+        margin-bottom: 14px;
+      }
+
+      /* ── CHART CARD ── */
+      .chart-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 24px 26px;
+        position: relative;
+        box-shadow: var(--shadow);
+      }
+
+      .chart-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        gap: 12px;
+      }
+
+      .chart-title {
+        font-family: var(--font-head);
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text);
+        letter-spacing: -0.01em;
+      }
+
+      .chart-subtitle {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 3px;
+      }
+
+      .tab-pills {
+        display: flex;
+        gap: 6px;
+        flex-shrink: 0;
+      }
+
+      .pill {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--surface2);
+        color: var(--muted);
+        cursor: pointer;
+        transition: all 0.15s;
+        white-space: nowrap;
+      }
+
+      .pill:hover {
+        border-color: var(--border2);
+        color: var(--text);
+      }
+      .pill.active {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #ffffff;
+        font-weight: 500;
+      }
+
+      /* ── CANVAS WRAPPER ── */
+      .canvas-wrap {
+        position: relative;
+        width: 100%;
+      }
+
+      /* ── STATUS MINI CARDS ── */
+      .status-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .status-mini {
+        background: var(--surface2);
+        border-radius: 12px;
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        text-align: center;
+      }
+
+      .status-mini .sv {
+        font-family: var(--font-head);
+        font-size: 20px;
+        font-weight: 800;
+      }
+      .status-mini .sl {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--muted);
+        margin-top: 2px;
+      }
+      .status-mini.good .sv {
+        color: var(--good);
+      }
+      .status-mini.blue .sv {
+        color: var(--accent2);
+      }
+      .status-mini.bad .sv {
+        color: var(--danger);
+      }
+
+      /* ── TABLE ── */
+      .table-wrap {
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        background: var(--surface);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+
+      thead th {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        padding: 8px 12px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+        background: #f8fafc;
+      }
+
+      tbody tr {
+        border-bottom: 1px solid var(--border);
+        transition: background 0.1s;
+      }
+
+      tbody tr:hover {
+        background: #f8fafc;
+      }
+      tbody tr:last-child {
+        border-bottom: none;
+      }
+
+      tbody td {
+        padding: 10px 12px;
+        color: var(--text);
+        font-family: var(--font-mono);
+        font-size: 12px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 3px 8px;
+        border-radius: 999px;
+        font-size: 10px;
+        font-family: var(--font-mono);
+        font-weight: 500;
+        letter-spacing: 0.04em;
+      }
+
+      .badge-up {
+        background: rgba(29, 78, 216, 0.12);
+        color: #1d4ed8;
+        border: 1px solid rgba(29, 78, 216, 0.2);
+      }
+      .badge-oil {
+        background: rgba(217, 119, 6, 0.12);
+        color: #b45309;
+        border: 1px solid rgba(217, 119, 6, 0.2);
+      }
+      .badge-good {
+        background: rgba(22, 163, 74, 0.12);
+        color: #16a34a;
+        border: 1px solid rgba(22, 163, 74, 0.2);
+      }
+      .badge-warn {
+        background: rgba(217, 119, 6, 0.12);
+        color: #b45309;
+        border: 1px solid rgba(217, 119, 6, 0.2);
+      }
+      .badge-bad {
+        background: rgba(220, 38, 38, 0.12);
+        color: #dc2626;
+        border: 1px solid rgba(220, 38, 38, 0.2);
+      }
+
+      /* efficiency bar */
+      .eff-bar {
+        width: 80px;
+        height: 4px;
+        background: #e2e8f0;
+        border-radius: 2px;
+        overflow: hidden;
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: 6px;
+      }
+
+      .eff-fill {
+        height: 100%;
+        border-radius: 2px;
+        background: var(--good);
+      }
+
+      /* ── LEGEND ── */
+      .legend {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 14px;
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      .legend-sq {
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+      }
+
+      /* ── FOOTER ── */
+      footer {
+        border-top: 1px solid var(--border);
+        padding: 20px 32px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--muted);
+        background: rgba(255, 255, 255, 0.9);
+      }
+
+      /* ── SECTION DIVIDER ── */
+      .section-label {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .section-label::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+      }
+
+      /* ── SCROLLBAR ── */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--border2);
+        border-radius: 3px;
+      }
+
+      /* ── ANIMATIONS ── */
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .kpi-card {
+        animation: fadeUp 0.35s ease both;
+      }
+      .kpi-card:nth-child(1) {
+        animation-delay: 0.04s;
+      }
+      .kpi-card:nth-child(2) {
+        animation-delay: 0.08s;
+      }
+      .kpi-card:nth-child(3) {
+        animation-delay: 0.12s;
+      }
+      .kpi-card:nth-child(4) {
+        animation-delay: 0.16s;
+      }
+      .chart-card {
+        animation: fadeUp 0.35s ease both;
+        animation-delay: 0.2s;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo">
+        <!-- <div class="logo-icon">🔥</div> -->
+        <div class="logo-text">Flare<span>IQ</span> Dashboard</div>
+      </div>
+      <div class="header-right">
+        <div class="live-badge">
+          <div class="live-dot"></div>
+          <span id="yearRangeBadge">DATA</span>
+        </div>
+        <select class="year-select" id="yearFilter" onchange="filterYear()">
+          <option value="all">Semua Tahun</option>
+        </select>
+      </div>
+    </header>
+
+    <main>
+      <div class="page-title">
+        <h1>Monitoring Flare Gas <span>Indonesia</span></h1>
+        <p>
+          // <span id="obsSummary">0</span> observasi ·
+          <span id="stationSummary">0</span> titik pemantauan · upstream &
+          upstream oil · analisis AI
+        </p>
+      </div>
+
+      <!-- KPI -->
+      <div class="kpi-grid">
+        <div class="kpi-card teal">
+          <div class="kpi-label">Total Observasi</div>
+          <div class="kpi-value" id="kpi-obs">10.961</div>
+          <div class="kpi-sub">data harian aktif</div>
+          <div class="kpi-icon">📊</div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-label">Efisiensi Rata-rata</div>
+          <div class="kpi-value" id="kpi-eff">95,80%</div>
+          <div class="kpi-sub" id="kpi-eff-sub">
+            tertinggi 99,0% · terendah 72,4%
+          </div>
+          <div class="kpi-icon">⚡</div>
+        </div>
+        <div class="kpi-card amber">
+          <div class="kpi-label">Total Anomali</div>
+          <div class="kpi-value" id="kpi-anom">548</div>
+          <div class="kpi-sub" id="kpi-anom-sub">5,0% dari total data</div>
+          <div class="kpi-icon">⚠️</div>
+        </div>
+        <div class="kpi-card blue">
+          <div class="kpi-label">Suhu Rata-rata</div>
+          <div class="kpi-value" id="kpi-temp">1.848 K</div>
+          <div class="kpi-sub">maks 2.498 K · min 1.634 K</div>
+          <div class="kpi-icon">🌡️</div>
+        </div>
+      </div>
+
+      <!-- ROW 1: main trend + donut -->
+      <div class="section-label">tren & distribusi</div>
+      <div class="grid-3">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Tren Bulanan</div>
+              <div class="chart-subtitle" id="trend-subtitle">
+                efisiensi rata-rata per bulan
+              </div>
+            </div>
+            <div class="tab-pills">
+              <button class="pill active" onclick="switchTrend('eff', this)">
+                Efisiensi
+              </button>
+              <button class="pill" onclick="switchTrend('bcm', this)">
+                BCM
+              </button>
+              <button class="pill" onclick="switchTrend('anom', this)">
+                Anomali
+              </button>
+              <button class="pill" onclick="switchTrend('score', this)">
+                Score
+              </button>
+            </div>
+          </div>
+          <div class="canvas-wrap">
+            <canvas id="trendChart" height="200"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Status Efisiensi</div>
+              <div class="chart-subtitle">distribusi keseluruhan</div>
+            </div>
+          </div>
+          <div
+            style="display: flex; align-items: center; justify-content: center"
+          >
+            <div
+              class="canvas-wrap"
+              style="width: 160px; height: 160px; flex-shrink: 0"
+            >
+              <canvas id="donutChart"></canvas>
+            </div>
+          </div>
+          <div class="status-grid">
+            <div class="status-mini good">
+              <div class="sv" id="s-sangat">7.746</div>
+              <div class="sl">Sangat Baik</div>
+            </div>
+            <div class="status-mini blue">
+              <div class="sv" id="s-baik">3.157</div>
+              <div class="sl">Baik</div>
+            </div>
+            <div class="status-mini bad">
+              <div class="sv" id="s-buruk">58</div>
+              <div class="sl">Buruk</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 2: yearly eff + yearly anom -->
+      <div class="grid-2">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Efisiensi per Tahun</div>
+              <div class="chart-subtitle">rata-rata tahunan (%)</div>
+            </div>
+          </div>
+          <div class="canvas-wrap">
+            <canvas id="yearEffChart" height="180"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Anomali per Tahun</div>
+              <div class="chart-subtitle">jumlah deteksi anomali (AI)</div>
+            </div>
+          </div>
+          <div class="canvas-wrap">
+            <canvas id="anomYearChart" height="180"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 3: stacked status -->
+      <div class="section-label">komposisi status per tahun</div>
+      <div class="grid-full">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Komposisi Status Efisiensi Tahunan</div>
+              <div class="chart-subtitle">Sangat Baik · Baik · Buruk</div>
+            </div>
+            <div class="legend">
+              <div class="legend-item">
+                <div class="legend-sq" style="background: #16a34a"></div>
+                Sangat Baik
+              </div>
+              <div class="legend-item">
+                <div class="legend-sq" style="background: #1d4ed8"></div>
+                Baik
+              </div>
+              <div class="legend-item">
+                <div class="legend-sq" style="background: #dc2626"></div>
+                Buruk
+              </div>
+            </div>
+          </div>
+          <div class="canvas-wrap">
+            <canvas id="stackChart" height="160"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 4: table titik -->
+      <div class="section-label">performa per titik pemantauan</div>
+      <div class="grid-full">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Detail 30 Titik Pemantauan</div>
+              <div class="chart-subtitle">klik header kolom untuk sortir</div>
+            </div>
+            <div class="tab-pills">
+              <button class="pill active" onclick="filterType('all', this)">
+                Semua
+              </button>
+              <button class="pill" onclick="filterType('upstream', this)">
+                Upstream
+              </button>
+              <button class="pill" onclick="filterType('upstream oil', this)">
+                Upstream Oil
+              </button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table id="stationTable">
+              <thead>
+                <tr>
+                  <th onclick="sortTable('id')" style="cursor: pointer">
+                    ID ↕
+                  </th>
+                  <th onclick="sortTable('type')" style="cursor: pointer">
+                    Tipe ↕
+                  </th>
+                  <th onclick="sortTable('eff_mean')" style="cursor: pointer">
+                    Efisiensi ↕
+                  </th>
+                  <th onclick="sortTable('bcm_sum')" style="cursor: pointer">
+                    Total BCM ↕
+                  </th>
+                  <th onclick="sortTable('anom_count')" style="cursor: pointer">
+                    Anomali ↕
+                  </th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="stationBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <span
+        >FlareIQ Dashboard · Data Flare Gas Indonesia · AI-Powered
+        Analytics</span
+      >
+      <span
+        ><span id="recordSummary">0</span> records ·
+        <span id="stationSummaryFooter">0</span> stations ·
+        <span id="yearRangeSummary">-</span></span
+      >
+    </footer>
+
+    <script>
+      /* ── DATA ── */
+      let RAW = [];
+      let MONTHLY = [];
+      let YEARLY = [];
+      let overallYearRange = "-";
+
+      const CSV_PATH = "hasil_flare_gas_ai.csv";
+
+      function parseCsv(text) {
+        const lines = text.trim().split(/\r?\n/);
+        const headers = lines
+          .shift()
+          .split(",")
+          .map((h) => h.trim());
+        return lines.map((line) => {
+          const values = line.split(",");
+          const row = {};
+          headers.forEach((h, i) => {
+            row[h] = values[i] !== undefined ? values[i].trim() : "";
+          });
+          return row;
+        });
+      }
+
+      function normalizeRow(row) {
+        return {
+          id: parseInt(row["id #"], 10),
+          type: row["Type"],
+          year: parseInt(row["Years"], 10),
+          date: row["Tanggal (Date)"],
+          bcm: parseFloat(row["BCM"]),
+          tempK: parseFloat(row["Avg. temp (K)"]),
+          anomaly: parseInt(row["anomaly"], 10),
+          anomalyScore: parseFloat(row["anomaly_score"]),
+          efficiency: parseFloat(row["efficiency"]),
+          status: row["status_efficiency"],
+        };
+      }
+
+      function groupBy(items, keyFn) {
+        const map = new Map();
+        items.forEach((item) => {
+          const key = keyFn(item);
+          if (!map.has(key)) map.set(key, []);
+          map.get(key).push(item);
+        });
+        return map;
+      }
+
+      function computeMonthly(rows) {
+        const groups = groupBy(rows, (r) => r.date.slice(0, 7));
+        return Array.from(groups.entries())
+          .sort((a, b) => a[0].localeCompare(b[0]))
+          .map(([month, list]) => {
+            const bcm = list.reduce((s, r) => s + r.bcm, 0);
+            const efficiency =
+              list.reduce((s, r) => s + r.efficiency, 0) / list.length;
+            const anomalyScore =
+              list.reduce((s, r) => s + r.anomalyScore, 0) / list.length;
+            const anomaly = list.filter((r) => r.anomaly === -1).length;
+            return {
+              Month: month,
+              BCM: bcm,
+              efficiency,
+              anomaly_score: anomalyScore,
+              anomaly,
+            };
+          });
+      }
+
+      function computeYearly(rows) {
+        const groups = groupBy(rows, (r) => r.year);
+        return Array.from(groups.entries())
+          .sort((a, b) => a[0] - b[0])
+          .map(([year, list]) => {
+            const bcm = list.reduce((s, r) => s + r.bcm, 0);
+            const eff =
+              list.reduce((s, r) => s + r.efficiency, 0) / list.length;
+            const anom = list.filter((r) => r.anomaly === -1).length;
+            const temp = list.reduce((s, r) => s + r.tempK, 0) / list.length;
+            const sangat = list.filter(
+              (r) => r.status === "Sangat Baik",
+            ).length;
+            const baik = list.filter((r) => r.status === "Baik").length;
+            const buruk = list.filter((r) => r.status === "Buruk").length;
+            return { y: year, eff, bcm, anom, temp, baik, buruk, sangat };
+          });
+      }
+
+      function computeStations(rows) {
+        const groups = groupBy(rows, (r) => `${r.id}::${r.type}`);
+        return Array.from(groups.entries()).map(([key, list]) => {
+          const [idStr, type] = key.split("::");
+          const bcm_sum = list.reduce((s, r) => s + r.bcm, 0);
+          const eff_mean =
+            list.reduce((s, r) => s + r.efficiency, 0) / list.length;
+          const anom_count = list.filter((r) => r.anomaly === -1).length;
+          return {
+            id: parseInt(idStr, 10),
+            type,
+            bcm_sum,
+            eff_mean,
+            anom_count,
+          };
+        });
+      }
+
+      function getFilteredRows() {
+        if (currentYear === "all") return RAW;
+        return RAW.filter((r) => String(r.year) === currentYear);
+      }
+
+      function getYearRange(years) {
+        if (!years.length) return "-";
+        const min = Math.min(...years);
+        const max = Math.max(...years);
+        return min === max ? String(min) : `${min}–${max}`;
+      }
+
+      async function loadData() {
+        const resp = await fetch(CSV_PATH);
+        const text = await resp.text();
+        RAW = parseCsv(text)
+          .map(normalizeRow)
+          .filter((r) => Number.isFinite(r.id));
+        MONTHLY = computeMonthly(RAW);
+        YEARLY = computeYearly(RAW);
+        populateYearFilter();
+        updateMeta();
+        updateAll();
+      }
+
+      function populateYearFilter() {
+        const select = document.getElementById("yearFilter");
+        const years = Array.from(new Set(RAW.map((r) => r.year))).sort(
+          (a, b) => a - b,
+        );
+        years.forEach((year) => {
+          const opt = document.createElement("option");
+          opt.value = String(year);
+          opt.textContent = String(year);
+          select.appendChild(opt);
+        });
+      }
+
+      function updateMeta() {
+        const years = Array.from(new Set(RAW.map((r) => r.year)));
+        overallYearRange = getYearRange(years);
+        document.getElementById("yearRangeBadge").textContent =
+          `DATA ${overallYearRange}`;
+        document.getElementById("yearRangeSummary").textContent =
+          overallYearRange;
+      }
+
+      /* ── CHART CONFIG HELPERS ── */
+      const gridColor = "rgba(15,23,42,0.08)";
+      const tickColor = "#64748b";
+      const baseOpts = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: {
+            grid: { color: gridColor },
+            ticks: {
+              color: tickColor,
+              font: { family: "'JetBrains Mono'", size: 10 },
+            },
+          },
+          y: {
+            grid: { color: gridColor },
+            ticks: {
+              color: tickColor,
+              font: { family: "'JetBrains Mono'", size: 10 },
+            },
+          },
+        },
+      };
+
+      /* ── FILTER STATE ── */
+      let currentYear = "all";
+      let currentType = "all";
+      let sortCol = "eff_mean";
+      let sortAsc = false;
+      let trendMode = "eff";
+      let trendChartInst = null;
+      let donutInst = null;
+
+      /* ── FILTER YEAR ── */
+      function filterYear() {
+        currentYear = document.getElementById("yearFilter").value;
+        updateAll();
+      }
+
+      function getMonthly() {
+        if (currentYear === "all") return MONTHLY;
+        return MONTHLY.filter((d) => d.Month.startsWith(currentYear));
+      }
+
+      function getYearly() {
+        if (currentYear === "all") return YEARLY;
+        return YEARLY.filter((d) => String(d.y) === currentYear);
+      }
+
+      /* ── KPI UPDATE ── */
+      function updateKPIs() {
+        const rows = getFilteredRows();
+        if (!rows.length) return;
+
+        const m = getMonthly();
+        const y = getYearly();
+        const obs = rows.length;
+        const eff = rows.reduce((s, r) => s + r.efficiency, 0) / rows.length;
+        const anom = rows.filter((r) => r.anomaly === -1).length;
+        const temp = rows.reduce((s, r) => s + r.tempK, 0) / rows.length;
+        const effMax = Math.max(...rows.map((r) => r.efficiency));
+        const effMin = Math.min(...rows.map((r) => r.efficiency));
+        const tempMax = Math.max(...rows.map((r) => r.tempK));
+        const tempMin = Math.min(...rows.map((r) => r.tempK));
+
+        document.getElementById("kpi-obs").textContent =
+          obs.toLocaleString("id-ID");
+        document.getElementById("kpi-eff").textContent =
+          eff.toFixed(2).replace(".", ",") + "%";
+        document.getElementById("kpi-eff-sub").textContent =
+          `tertinggi ${effMax.toFixed(1).replace(".", ",")}% · terendah ${effMin.toFixed(1).replace(".", ",")}%`;
+        document.getElementById("kpi-anom").textContent =
+          anom.toLocaleString("id-ID");
+        document.getElementById("kpi-temp").textContent =
+          Math.round(temp).toLocaleString("id-ID") + " K";
+        document.getElementById("kpi-anom-sub").textContent =
+          ((anom / (obs || 1)) * 100).toFixed(1).replace(".", ",") +
+          "% dari total data";
+
+        const sangat = y.reduce((s, d) => s + d.sangat, 0);
+        const baik = y.reduce((s, d) => s + d.baik, 0);
+        const buruk = y.reduce((s, d) => s + d.buruk, 0);
+        document.getElementById("s-sangat").textContent =
+          sangat.toLocaleString("id-ID");
+        document.getElementById("s-baik").textContent =
+          baik.toLocaleString("id-ID");
+        document.getElementById("s-buruk").textContent =
+          buruk.toLocaleString("id-ID");
+        updateDonut(sangat, baik, buruk);
+
+        const uniqStations = new Set(rows.map((r) => r.id)).size;
+        document.getElementById("obsSummary").textContent =
+          obs.toLocaleString("id-ID");
+        document.getElementById("stationSummary").textContent =
+          uniqStations.toLocaleString("id-ID");
+        document.getElementById("recordSummary").textContent =
+          obs.toLocaleString("id-ID");
+        document.getElementById("stationSummaryFooter").textContent =
+          uniqStations.toLocaleString("id-ID");
+        document.querySelector(".kpi-card.blue .kpi-sub").textContent =
+          `maks ${Math.round(tempMax).toLocaleString("id-ID")} K · min ${Math.round(tempMin).toLocaleString("id-ID")} K`;
+        const activeRange =
+          currentYear === "all" ? overallYearRange : currentYear;
+        document.getElementById("yearRangeSummary").textContent = activeRange;
+        document.getElementById("yearRangeBadge").textContent =
+          `DATA ${activeRange}`;
+      }
+
+      /* ── TREND CHART ── */
+      function switchTrend(mode, el) {
+        trendMode = mode;
+        document
+          .querySelectorAll("#trendChart ~ * .pill, .tab-pills .pill")
+          .forEach((p) => {});
+        el.closest(".tab-pills")
+          .querySelectorAll(".pill")
+          .forEach((p) => p.classList.remove("active"));
+        el.classList.add("active");
+        const subtitles = {
+          eff: "efisiensi rata-rata per bulan",
+          bcm: "volume BCM per bulan (×10⁻³)",
+          anom: "jumlah anomali per bulan",
+          score: "anomaly score rata-rata per bulan",
+        };
+        document.getElementById("trend-subtitle").textContent = subtitles[mode];
+        buildTrend();
+      }
+
+      function buildTrend() {
+        const m = getMonthly();
+        const labels = m.map((d) => d.Month.slice(2));
+        let data, color, type;
+        if (trendMode === "eff") {
+          data = m.map((d) => +d.efficiency.toFixed(3));
+          color = "#0f766e";
+          type = "line";
+        } else if (trendMode === "bcm") {
+          data = m.map((d) => +(d.BCM * 1000).toFixed(4));
+          color = "#1d4ed8";
+          type = "line";
+        } else if (trendMode === "anom") {
+          data = m.map((d) => d.anomaly);
+          color = "#dc2626";
+          type = "bar";
+        } else {
+          data = m.map((d) => +d.anomaly_score.toFixed(5));
+          color = "#d97706";
+          type = "line";
+        }
+
+        const ctx = document.getElementById("trendChart").getContext("2d");
+        if (trendChartInst) trendChartInst.destroy();
+        trendChartInst = new Chart(ctx, {
+          type,
+          data: {
+            labels,
+            datasets: [
+              {
+                label: "",
+                data,
+                borderColor: color,
+                backgroundColor: type === "bar" ? color + "88" : color + "22",
+                borderWidth: type === "bar" ? 0 : 2,
+                pointRadius: 0,
+                fill: type !== "bar",
+                tension: 0.35,
+              },
+            ],
+          },
+          options: {
+            ...baseOpts,
+            plugins: {
+              legend: { display: false },
+              tooltip: { callbacks: { label: (ctx) => " " + ctx.raw } },
+            },
+            scales: {
+              x: {
+                grid: { color: gridColor },
+                ticks: {
+                  color: tickColor,
+                  font: { family: "'JetBrains Mono'", size: 10 },
+                  maxRotation: 45,
+                  autoSkip: true,
+                  maxTicksLimit: 18,
+                },
+              },
+              y: {
+                grid: { color: gridColor },
+                ticks: {
+                  color: tickColor,
+                  font: { family: "'JetBrains Mono'", size: 10 },
+                },
+              },
+            },
+          },
+        });
+      }
+
+      /* ── DONUT ── */
+      function updateDonut(sangat, baik, buruk) {
+        const ctx = document.getElementById("donutChart").getContext("2d");
+        if (donutInst) donutInst.destroy();
+        donutInst = new Chart(ctx, {
+          type: "doughnut",
+          data: {
+            labels: ["Sangat Baik", "Baik", "Buruk"],
+            datasets: [
+              {
+                data: [sangat, baik, buruk],
+                backgroundColor: ["#16a34a", "#1d4ed8", "#dc2626"],
+                borderWidth: 0,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: "70%",
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) =>
+                    " " + ctx.label + ": " + ctx.raw.toLocaleString("id-ID"),
+                },
+              },
+            },
+          },
+        });
+      }
+
+      /* ── YEARLY EFF CHART ── */
+      let yearEffInst = null;
+      function buildYearEff() {
+        const y = getYearly();
+        const ctx = document.getElementById("yearEffChart").getContext("2d");
+        if (yearEffInst) yearEffInst.destroy();
+        yearEffInst = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: y.map((d) => d.y),
+            datasets: [
+              {
+                data: y.map((d) => +d.eff.toFixed(2)),
+                backgroundColor: y.map((d) =>
+                  d.eff >= 96.5
+                    ? "#16a34a"
+                    : d.eff >= 95
+                      ? "#1d4ed8"
+                      : "#d97706",
+                ),
+                borderRadius: 6,
+              },
+            ],
+          },
+          options: {
+            ...baseOpts,
+            plugins: {
+              legend: { display: false },
+              tooltip: { callbacks: { label: (ctx) => " " + ctx.raw + "%" } },
+            },
+            scales: {
+              x: {
+                grid: { color: gridColor },
+                ticks: {
+                  color: tickColor,
+                  font: { family: "'JetBrains Mono'", size: 11 },
+                },
+              },
+              y: {
+                min: 93,
+                max: 98,
+                grid: { color: gridColor },
+                ticks: {
+                  color: tickColor,
+                  font: { family: "'JetBrains Mono'", size: 11 },
+                  callback: (v) => v + "%",
+                },
+              },
+            },
+          },
+        });
+      }
+
+      /* ── ANOM YEAR CHART ── */
+      let anomYearInst = null;
+      function buildAnomYear() {
+        const y = getYearly();
+        const ctx = document.getElementById("anomYearChart").getContext("2d");
+        if (anomYearInst) anomYearInst.destroy();
+        anomYearInst = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: y.map((d) => d.y),
+            datasets: [
+              {
+                data: y.map((d) => d.anom),
+                backgroundColor: y.map((d) =>
+                  d.anom > 100
+                    ? "#dc2626"
+                    : d.anom > 50
+                      ? "#d97706"
+                      : "#16a34a",
+                ),
+                borderRadius: 6,
+              },
+            ],
+          },
+          options: {
+            ...baseOpts,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: { label: (ctx) => " " + ctx.raw + " anomali" },
+              },
+            },
+            scales: {
+              x: {
+                grid: { color: gridColor },
+                ticks: {
+                  color: tickColor,
+                  font: { family: "'JetBrains Mono'", size: 11 },
+                },
+              },
+              y: {
+                grid: { color: gridColor },
+                ticks: {
+                  color: tickColor,
+                  font: { family: "'JetBrains Mono'", size: 11 },
+                },
+              },
+            },
+          },
+        });
+      }
+
+      /* ── STACK CHART ── */
+      let stackInst = null;
+      function buildStack() {
+        const y = getYearly();
+        const ctx = document.getElementById("stackChart").getContext("2d");
+        if (stackInst) stackInst.destroy();
+        stackInst = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: y.map((d) => d.y),
+            datasets: [
+              {
+                label: "Sangat Baik",
+                data: y.map((d) => d.sangat),
+                backgroundColor: "#16a34a",
+                borderRadius: 0,
+              },
+              {
+                label: "Baik",
+                data: y.map((d) => d.baik),
+                backgroundColor: "#1d4ed8",
+                borderRadius: 0,
+              },
+              {
+                label: "Buruk",
+                data: y.map((d) => d.buruk),
+                backgroundColor: "#dc2626",
+                borderRadius: 0,
+              },
+            ],
+          },
+          options: {
+            ...baseOpts,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: {
+                stacked: true,
+                grid: { color: gridColor },
+                ticks: {
+                  color: tickColor,
+                  font: { family: "'JetBrains Mono'", size: 11 },
+                },
+              },
+              y: {
+                stacked: true,
+                grid: { color: gridColor },
+                ticks: {
+                  color: tickColor,
+                  font: { family: "'JetBrains Mono'", size: 11 },
+                },
+              },
+            },
+          },
+        });
+      }
+
+      /* ── TABLE ── */
+      function filterType(type, el) {
+        currentType = type;
+        el.closest(".tab-pills")
+          .querySelectorAll(".pill")
+          .forEach((p) => p.classList.remove("active"));
+        el.classList.add("active");
+        renderTable();
+      }
+
+      function sortTable(col) {
+        if (sortCol === col) sortAsc = !sortAsc;
+        else {
+          sortCol = col;
+          sortAsc = true;
+        }
+        renderTable();
+      }
+
+      function renderTable() {
+        let rows = computeStations(getFilteredRows());
+        if (currentType !== "all")
+          rows = rows.filter((r) => r.type === currentType);
+        rows.sort((a, b) => {
+          const va = a[sortCol],
+            vb = b[sortCol];
+          return sortAsc ? (va > vb ? 1 : -1) : va < vb ? 1 : -1;
+        });
+        const tbody = document.getElementById("stationBody");
+        tbody.innerHTML = rows
+          .map((r) => {
+            const eff = r.eff_mean.toFixed(2);
+            const pct = (((r.eff_mean - 85) / 15) * 100).toFixed(0);
+            const typeB =
+              r.type === "upstream"
+                ? `<span class="badge badge-up">upstream</span>`
+                : `<span class="badge badge-oil">upstream oil</span>`;
+            const status =
+              r.eff_mean >= 97
+                ? `<span class="badge badge-good">Sangat Baik</span>`
+                : r.eff_mean >= 94
+                  ? `<span class="badge badge-warn">Baik</span>`
+                  : `<span class="badge badge-bad">Buruk</span>`;
+            const anomBadge =
+              r.anom_count > 50
+                ? `<span style="color:#ef4444;font-weight:500">${r.anom_count}</span>`
+                : r.anom_count > 20
+                  ? `<span style="color:#f59e0b">${r.anom_count}</span>`
+                  : r.anom_count;
+            return `<tr>
+      <td><span style="color:#0f766e;font-weight:500">#${r.id}</span></td>
+      <td>${typeB}</td>
+      <td><div style="display:flex;align-items:center;gap:6px"><div class="eff-bar"><div class="eff-fill" style="width:${pct}%"></div></div>${eff}%</div></td>
+      <td>${(r.bcm_sum * 1000).toFixed(4)} ×10⁻³</td>
+      <td>${anomBadge}</td>
+      <td>${status}</td>
+    </tr>`;
+          })
+          .join("");
+      }
+
+      /* ── UPDATE ALL ── */
+      function updateAll() {
+        updateKPIs();
+        buildTrend();
+        buildYearEff();
+        buildAnomYear();
+        buildStack();
+        renderTable();
+      }
+
+      /* ── INIT ── */
+      loadData();
+    </script>
+  </body>
+</html>
